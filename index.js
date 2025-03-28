@@ -1,30 +1,33 @@
-const http = require("http");
-const fs = require("fs");
-const { isUtf8 } = require("buffer");
+const fs  = require('fs');
+const express = require('express');
 
-const data = { age: 5 };
+const index = fs.readFileSync('index.html', 'utf8');
+const data  = fs.readFileSync('data.json', 'utf8');
+const products  = data.products;
 
-const index = fs.readFileSync("index.html", "utf-8");
-const dataApi = fs.readFileSync("data.json", "utf-8");
+const server = express();
 
-const server = http.createServer((req, res) => {
-  console.log(req.url);
-
-  switch (req.url) {
-    case "/":
-      res.setHeader("Content-Type", "text/html");
-      res.end(index);
-      break;
-    case "/data":
-      res.setHeader("Content-Type", "application/json");
-      res.end(dataApi);
-      break;
-    default:
-      res.statusCode = 404;
-      res.end();
-  }
-
-  console.log("Someone connected to the server");
+server.use((req, res, next) => {
+    console.log(req.method, req.url, req.ip, new Date(), req.get('User-Agent'));
+    next();
 });
+    
+const auth = (req, res,next) => {
+    if(req.query.password === '123') {
+        next();
+    }else {
+    res.status(401).send('Not authorized');        }
+}
 
-server.listen(8080);
+server.use(auth);
+
+
+
+server.get('/', (req, res) => {
+    res.status(201).send('<h1>Hello World</h1>');
+})
+
+
+server.listen(8080 , ()=> {
+    console.log("Server started");
+});
