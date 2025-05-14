@@ -1,33 +1,18 @@
-const fs  = require('fs');
-const express = require('express');
-
-const index = fs.readFileSync('index.html', 'utf8');
-const data  = fs.readFileSync('data.json', 'utf8');
-const products  = data.products;
-
+const express = require("express");
+const morgan = require("morgan");
+const { json } = require("stream/consumers");
+const productController = require("./controllers/product");
 const server = express();
+const productRouter = require("./routes/product");
+const commentRouter = require("./routes/comment");
 
-server.use((req, res, next) => {
-    console.log(req.method, req.url, req.ip, new Date(), req.get('User-Agent'));
-    next();
-});
-    
-const auth = (req, res,next) => {
-    if(req.query.password === '123') {
-        next();
-    }else {
-    res.status(401).send('Not authorized');        }
-}
+//body parser
+server.use(express.json()); // Parse JSON bodies
 
-server.use(auth);
+server.use(morgan("dev")); // Morgan logs requests
+server.use("/products", productRouter.router);
+server.use("/comments", commentRouter.router);
 
-
-
-server.get('/', (req, res) => {
-    res.status(201).send('<h1>Hello World</h1>');
-})
-
-
-server.listen(8080 , ()=> {
-    console.log("Server started");
+server.listen(8080, () => {
+  console.log("Server started");
 });
